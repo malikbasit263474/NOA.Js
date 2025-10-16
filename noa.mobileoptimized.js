@@ -357,3 +357,26 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
+
+// hover tooltip logic (optimized)
+document.addEventListener("DOMContentLoaded", () => {
+  const isMobile = window.innerWidth <= 991; // adjust breakpoint if needed
+  if (isMobile) return; // 🔇 do nothing on mobile / touch devices
+
+  const wrappers = document.querySelectorAll(".music-player-wrapper");
+
+  wrappers.forEach(wrapper => {
+    const dot = wrapper.querySelector(".dot");
+    const tooltip = wrapper.querySelector(".tool-tip-wrapper");
+
+    if (dot && tooltip) {
+      dot.addEventListener("mouseenter", () => {
+        tooltip.style.display = "block";
+      });
+      dot.addEventListener("mouseleave", () => {
+        tooltip.style.display = "none";
+      });
+    }
+  });
+});
+
