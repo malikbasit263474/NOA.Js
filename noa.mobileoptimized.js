@@ -380,3 +380,95 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
+
+
+// mobile details popup logic
+document.addEventListener("DOMContentLoaded", function() {
+  if (window.innerWidth > 991) return; // only on mobile
+
+  const popup = document.querySelector(".music-details-popup");
+  const popupText = popup?.querySelector(".song-description.is-text-popup");
+  const closeBtn = popup?.querySelector(".close-popup");
+  const viewBtn = document.querySelector(".view-details-button");
+
+  if (!popup || !popupText || !viewBtn) return;
+
+  // When user clicks "View Details"
+  viewBtn.addEventListener("click", function() {
+    const activeDot = document.querySelector(".dot.active");
+    if (!activeDot) return;
+
+    // get description from active song
+    const desc = activeDot.getAttribute("data-description");
+    popupText.innerHTML = desc || "No description available.";
+
+    // show popup (you can control animation in Webflow)
+    popup.style.display = "block";
+    requestAnimationFrame(() => popup.classList.add("active"));
+  });
+
+  // Optional close button
+  if (closeBtn) {
+    closeBtn.addEventListener("click", () => {
+      popup.classList.remove("active");
+      setTimeout(() => (popup.style.display = "none"), 300);
+    });
+  }
+});
+
+
+
+// email validation and submission logic (optimized)
+document.addEventListener("DOMContentLoaded", () => {
+  const submitBtn = document.querySelector(".submit-btn");
+  const emailField = document.querySelector(".email-field");
+  const form = submitBtn?.closest("form");
+
+  // Early exit if no form on page
+  if (!submitBtn || !emailField || !form) return;
+
+  const isMobile =
+    window.innerWidth <= 768 ||
+    ("ontouchstart" in window && navigator.maxTouchPoints > 0);
+
+  let stage = 0;
+
+  // --- Helper: highlight invalid field ---
+  const highlightError = () => {
+    emailField.classList.add("field-error");
+    setTimeout(() => emailField.classList.remove("field-error"), 1000);
+  };
+
+  // --- Click / Tap Submission Logic ---
+  submitBtn.addEventListener("click", (e) => {
+    const emailVal = (emailField.value || "").trim();
+    const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal);
+
+    // 🟢 Mobile (double-tap confirmation)
+    if (isMobile) {
+      if (stage === 0) {
+        stage = 1;
+        return; // first tap = visual animation handled by Webflow
+      }
+
+      if (stage === 1) {
+        if (!isValidEmail) {
+          e.preventDefault();
+          highlightError();
+          return;
+        }
+
+        stage = 2; // let Webflow handle native submit
+        return;
+      }
+    }
+
+    // 💻 Desktop (single-click validation)
+    if (!isValidEmail) {
+      e.preventDefault();
+      highlightError();
+      return;
+    }
+    // valid → Webflow handles submit
+  });
+});
