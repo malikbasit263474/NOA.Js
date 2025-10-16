@@ -472,3 +472,14 @@ document.addEventListener("DOMContentLoaded", () => {
     // valid → Webflow handles submit
   });
 });
+
+// logo click refresh logic
+document.addEventListener("DOMContentLoaded", () => {
+  const logo = document.querySelector(".nav-logo");
+  if (logo) {
+    logo.addEventListener("click", (e) => {
+      e.preventDefault(); // prevent any Webflow link behavior
+      location.reload();  // refreshes the page
+    });
+  }
+});
