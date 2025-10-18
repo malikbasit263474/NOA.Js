@@ -278,13 +278,23 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   window.addEventListener("wheel", handleScroll);
 
-  // --- Mobile Swipe Logic ---
+// --- Mobile Swipe Logic ---
 let touchStartY = 0;
 let lastMoveY = 0;
 let activeTouchId = null;
+const SWIPE_THRESHOLD = 50;     // Minimum swipe distance to trigger section change
+const PREVENT_THRESHOLD = 8;    // When to start blocking page scroll
 
-const SWIPE_THRESHOLD = 50;     // trigger change
-const PREVENT_THRESHOLD = 8;    // when to start preventing scroll
+// --- Safe wrapper for hideMusicDetails ---
+function safeHideMusicDetails() {
+  try {
+    if (typeof window.hideMusicDetails === "function") {
+      window.hideMusicDetails(true);
+    }
+  } catch (err) {
+    // Fail silently if not defined yet
+  }
+}
 
 function handleTouchStart(e) {
   const t = e.touches[0];
@@ -294,25 +304,21 @@ function handleTouchStart(e) {
 }
 
 function handleTouchMove(e) {
-  // Find the matching touch by identifier (multi-touch safe)
   const t = [...e.touches].find(tt => tt.identifier === activeTouchId) || e.touches[0];
   if (!t) return;
-
   lastMoveY = t.clientY;
 
-  // Once we detect a real swipe, prevent page scroll from hijacking the gesture
+  // Prevent page scroll once it’s clearly a swipe gesture
   if (Math.abs(touchStartY - lastMoveY) > PREVENT_THRESHOLD) {
-    // touchmove MUST be non-passive for this to work
     e.preventDefault();
   }
 }
 
 function handleTouchEnd(e) {
-  // Prefer the exact final position from changedTouches (works even if no touchmove fired)
   const ct = [...e.changedTouches].find(tt => tt.identifier === activeTouchId) || e.changedTouches[0];
   const endY = ct ? ct.clientY : lastMoveY;
-
   const swipeDistance = touchStartY - endY;
+
   if (isScrolling) { activeTouchId = null; return; }
   if (Math.abs(swipeDistance) < SWIPE_THRESHOLD) { activeTouchId = null; return; }
 
@@ -322,7 +328,7 @@ function handleTouchEnd(e) {
   if (musicDetails && musicDetails.style.display === "block") {
     musicDetails.style.display = "none";
     musicDetails.style.opacity = "0";
-    if (window.hideMusicDetails) window.hideMusicDetails(true);
+    safeHideMusicDetails();
   }
 
   if (swipeDistance > 0 && current < sections.length - 1) {
@@ -340,7 +346,7 @@ function handleTouchEnd(e) {
 }
 
 // Attach mobile swipe listeners
-// NOTE: touchmove must be passive:false so we can preventDefault() when needed
+// touchmove must be passive: false for preventDefault() to work
 window.addEventListener("touchstart", handleTouchStart, { passive: true });
 window.addEventListener("touchmove", handleTouchMove, { passive: false });
 window.addEventListener("touchend", handleTouchEnd, { passive: true });
