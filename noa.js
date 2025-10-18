@@ -183,6 +183,7 @@ function showMusicDetails() {
 });
 
 
+
 // scroll + nav section logic
 document.addEventListener("DOMContentLoaded", () => {
   const sections = [
@@ -253,9 +254,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // --- Scroll Logic (disabled for ≤991px) ---
+  // --- Desktop Scroll Logic ---
   function handleScroll(e) {
-    if (window.innerWidth <= 991) return; // disable on mobile
     if (isScrolling) return;
     isScrolling = true;
 
@@ -277,6 +277,50 @@ document.addEventListener("DOMContentLoaded", () => {
     setTimeout(() => (isScrolling = false), 800);
   }
   window.addEventListener("wheel", handleScroll);
+
+  // --- Mobile Swipe Logic ---
+  let touchStartY = 0;
+  let touchEndY = 0;
+
+  function handleTouchStart(e) {
+    touchStartY = e.touches[0].clientY;
+  }
+
+  function handleTouchMove(e) {
+    touchEndY = e.touches[0].clientY;
+  }
+
+  function handleTouchEnd() {
+    const swipeDistance = touchStartY - touchEndY;
+    const minSwipeDistance = 50; // Minimum swipe distance to trigger section change
+    if (Math.abs(swipeDistance) < minSwipeDistance || isScrolling) return;
+
+    isScrolling = true;
+
+    // Hide music details instantly
+    if (musicDetails && musicDetails.style.display === "block") {
+      musicDetails.style.display = "none";
+      musicDetails.style.opacity = "0";
+      if (window.hideMusicDetails) window.hideMusicDetails(true);
+    }
+
+    if (swipeDistance > 0 && current < sections.length - 1) {
+      // swipe up → next section
+      current++;
+      showSection(current);
+    } else if (swipeDistance < 0 && current > 0) {
+      // swipe down → previous section
+      current--;
+      showSection(current);
+    }
+
+    setTimeout(() => (isScrolling = false), 800);
+  }
+
+  // Attach mobile swipe listeners
+  window.addEventListener("touchstart", handleTouchStart, { passive: true });
+  window.addEventListener("touchmove", handleTouchMove, { passive: true });
+  window.addEventListener("touchend", handleTouchEnd, { passive: true });
 
   // --- Go To Section ---
   function goToSection(targetIndex) {
@@ -320,6 +364,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 });
+
 
 
 
