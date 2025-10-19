@@ -192,6 +192,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelector(".hero_what-wrap")
   ];
   const musicDetails = document.querySelector(".music-details");
+  const scrollWrapper = document.querySelector(".scroll-wrapper");
   const whyBtn = document.querySelector(".why-link");
   const whatBtn = document.querySelector(".what-link");
   const whyBtnMobile = document.querySelector(".why-link.is-mobile");
@@ -200,13 +201,14 @@ document.addEventListener("DOMContentLoaded", () => {
   let current = 0;
   let isScrolling = false;
 
-  // --- Helper: Animate Section Transition ---
+  // --- Helper: Animate Section Transition (desktop only) ---
   function showSection(index) {
     if (musicDetails && musicDetails.style.display === "block") return;
     sections.forEach((sec, i) => {
       const heading = sec.querySelector(".hero-heading");
       const paragraph = sec.querySelector(".hero-paragraph");
       if (!heading || !paragraph) return;
+
       if (i === index) {
         sec.style.visibility = "visible";
         sec.style.opacity = "1";
@@ -229,10 +231,10 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // --- Initialize first section ---
+  // --- Initialize first section (desktop only) ---
   showSection(current);
 
-  // --- Hide music details when shown ---
+  // --- Hide music details when shown (desktop only) ---
   window.addEventListener("musicDetailsShow", () => {
     if (current === 0) {
       const first = sections[0];
@@ -256,6 +258,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- Desktop Scroll Logic ---
   function handleScroll(e) {
+    if (window.innerWidth <= 991) return; // disable on mobile
     if (isScrolling) return;
     isScrolling = true;
 
@@ -278,99 +281,26 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   window.addEventListener("wheel", handleScroll);
 
-  
- // --- MOBILE SWIPE LOGIC (final stable version) ---
-const scrollWrapper = document.querySelector(".scroll-wrapper");
-let touchStartY = 0;
-let touchCurrentY = 0;
-let isDragging = false;
-let swipeLocked = false;
-const swipeThreshold = 80;     // distance to trigger a change
-const dragLimit = 100;         // visual drag limit
-const dragFactor = 0.3;        // how much section follows finger
+  // --- MOBILE: Handle music details visibility ---
+  if (window.innerWidth <= 991 && scrollWrapper && musicDetails) {
+    document.addEventListener("musicDetailsShow", () => {
+      // Hide scroll wrapper instantly
+      scrollWrapper.style.display = "none";
+      musicDetails.style.display = "block";
+      musicDetails.style.opacity = "1";
 
-// Utility: is the touch inside a UI element we must ignore?
-function isTouchOnUI(target) {
-  return target.closest(
-    ".dot, .sound-on, .sound-off, .view-details-button, .music-details, .music-details-popup, button, a, input"
-  );
-}
-
-if (scrollWrapper) {
-  scrollWrapper.addEventListener("touchstart", handleStart, { passive: true });
-  scrollWrapper.addEventListener("touchmove", handleMove, { passive: false });
-  scrollWrapper.addEventListener("touchend", handleEnd, { passive: true });
-}
-
-function handleStart(e) {
-  // Ignore UI interactions
-  if (isTouchOnUI(e.target)) return;
-
-  // Block swipe if music details showing
-  if (musicDetails && musicDetails.style.display === "block") return;
-
-  isDragging = true;
-  touchStartY = e.touches[0].clientY;
-  touchCurrentY = touchStartY;
-}
-
-function handleMove(e) {
-  if (!isDragging || swipeLocked) return;
-
-  touchCurrentY = e.touches[0].clientY;
-  const deltaY = touchCurrentY - touchStartY;
-
-  // Small moves = scroll-like, don't trigger browser rubber band
-  if (Math.abs(deltaY) < 10) return;
-
-  // Prevent default scroll
-  e.preventDefault();
-
-  const activeSection = sections[current];
-  if (activeSection) {
-    const limited = Math.max(Math.min(deltaY, dragLimit), -dragLimit);
-    activeSection.style.transform = `translateY(${limited * dragFactor}px)`;
-  }
-}
-
-function handleEnd() {
-  if (!isDragging || swipeLocked) return;
-  isDragging = false;
-
-  const swipeDistance = touchStartY - touchCurrentY;
-
-  const activeSection = sections[current];
-  if (activeSection) {
-    activeSection.style.transition = "transform 0.25s ease";
-    activeSection.style.transform = "translateY(0)";
-    setTimeout(() => (activeSection.style.transition = ""), 250);
+      // Hide details again after 5s and restore scroll
+      setTimeout(() => {
+        musicDetails.style.display = "none";
+        musicDetails.style.opacity = "0";
+        scrollWrapper.style.display = "block";
+      }, 5000);
+    });
   }
 
-  // Not enough distance = ignore
-  if (Math.abs(swipeDistance) < swipeThreshold) return;
-
-  swipeLocked = true;
-
-  // Hide music details instantly if open
-  if (musicDetails && musicDetails.style.display === "block") {
-    musicDetails.style.display = "none";
-    musicDetails.style.opacity = "0";
-    if (window.hideMusicDetails) window.hideMusicDetails(true);
-  }
-
-  if (swipeDistance > 0 && current < sections.length - 1) {
-    current++;
-    showSection(current);
-  } else if (swipeDistance < 0 && current > 0) {
-    current--;
-    showSection(current);
-  }
-
-  setTimeout(() => (swipeLocked = false), 700);
-}
-
-  // --- Go To Section ---
+  // --- Go To Section (desktop only) ---
   function goToSection(targetIndex) {
+    if (window.innerWidth <= 991) return; // disable on mobile
     if (musicDetails && musicDetails.style.display === "block") {
       musicDetails.style.display = "none";
       musicDetails.style.opacity = "0";
@@ -393,7 +323,7 @@ function handleEnd() {
     }
   }
 
-  // --- Attach Events (Desktop + Mobile) ---
+  // --- Attach nav button events ---
   const allWhyBtns = [whyBtn, whyBtnMobile].filter(Boolean);
   const allWhatBtns = [whatBtn, whatBtnMobile].filter(Boolean);
 
