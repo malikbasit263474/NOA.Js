@@ -332,17 +332,15 @@ function handleTouchEnd(e) {
   }
 
   if (swipeDistance > 0 && current < sections.length - 1) {
-    // swipe up → next section
-    current++;
-    showSection(current);
-  } else if (swipeDistance < 0 && current > 0) {
-    // swipe down → previous section
-    current--;
-    showSection(current);
-  }
-
-  setTimeout(() => (isScrolling = false), 800);
-  activeTouchId = null;
+  // swipe up → next section
+  sections.forEach(sec => sec.style.visibility = "hidden");
+  current++;
+  showSection(current);
+} else if (swipeDistance < 0 && current > 0) {
+  // swipe down → previous section
+  sections.forEach(sec => sec.style.visibility = "hidden");
+  current--;
+  showSection(current);
 }
 
 // Attach mobile swipe listeners
