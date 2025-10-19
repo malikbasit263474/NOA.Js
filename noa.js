@@ -400,6 +400,9 @@ window.addEventListener("touchcancel", handleTouchEnd, { passive: true });
 
 // hover tooltip logic
 document.addEventListener("DOMContentLoaded", () => {
+  // Disable tooltips on mobile and tablets
+  if (window.innerWidth <= 1024) return;
+
   const wrappers = document.querySelectorAll(".music-player-wrapper");
 
   wrappers.forEach(wrapper => {
@@ -416,6 +419,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
 
 
 
