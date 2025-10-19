@@ -397,20 +397,8 @@ window.addEventListener("touchcancel", handleTouchEnd, { passive: true });
 
 
 
-// Hover tooltip logic (disabled on mobile & tablet)
+// Hover tooltip logic (desktop hover only)
 document.addEventListener("DOMContentLoaded", () => {
-  // Disable tooltip logic on mobile/tablet
-  if (window.innerWidth <= 1024) {
-    // Hide all tooltip elements completely
-    document.querySelectorAll(".tool-tip-wrapper").forEach(el => {
-      el.style.display = "none";
-      el.style.opacity = "0";
-      el.style.pointerEvents = "none";
-    });
-    return; // stop here — skip hover logic
-  }
-
-  // Desktop only — enable tooltip hover behavior
   const wrappers = document.querySelectorAll(".music-player-wrapper");
 
   wrappers.forEach(wrapper => {
@@ -427,6 +415,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
 
 
 
