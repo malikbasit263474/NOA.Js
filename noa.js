@@ -278,19 +278,33 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   window.addEventListener("wheel", handleScroll);
 
- // --- Mobile Swipe Logic (improved & smooth) ---
+ // --- Mobile Swipe Logic (final fix for accidental section change) ---
+const scrollWrapper = document.querySelector(".scroll-wrapper");
 let touchStartY = 0;
 let touchCurrentY = 0;
 let isSwiping = false;
 let swipeLocked = false;
-let swipeThreshold = 80; // px to trigger section switch
-let maxSwipeDistance = 120; // for limiting drag effect
+const swipeThreshold = 80; // px to trigger section switch
+const maxSwipeDistance = 120;
+
+if (scrollWrapper) {
+  // --- Only track swipes on the scroll-wrapper ---
+  scrollWrapper.addEventListener("touchstart", handleTouchStart, { passive: true });
+  scrollWrapper.addEventListener("touchmove", handleTouchMove, { passive: true });
+  scrollWrapper.addEventListener("touchend", handleTouchEnd, { passive: true });
+}
+
+// Ignore touch events on UI elements inside scroll-wrapper
+[".dot", ".view-details-button", "button", "a", "input", ".music-details", ".music-details-popup"].forEach(sel => {
+  document.querySelectorAll(sel).forEach(el => {
+    el.addEventListener("touchstart", e => e.stopPropagation(), { passive: true });
+    el.addEventListener("touchmove", e => e.stopPropagation(), { passive: true });
+    el.addEventListener("touchend", e => e.stopPropagation(), { passive: true });
+  });
+});
 
 function handleTouchStart(e) {
-  // Ignore touches on buttons, dots, links, popups
-  if (e.target.closest("button, a, .dot, .view-details-button, .music-details, .music-details-popup")) return;
-
-  // Disable swipe if details are open
+  // If music details are visible, disable swipe
   if (musicDetails && musicDetails.style.display === "block") return;
 
   touchStartY = e.touches[0].clientY;
@@ -304,21 +318,19 @@ function handleTouchMove(e) {
   touchCurrentY = e.touches[0].clientY;
   const deltaY = touchCurrentY - touchStartY;
 
-  // Slight visual drag (smooth feel)
   const activeSection = sections[current];
   if (activeSection) {
     const limitedY = Math.max(Math.min(deltaY, maxSwipeDistance), -maxSwipeDistance);
-    activeSection.style.transform = `translateY(${limitedY * 0.3}px)`; // subtle follow effect
+    activeSection.style.transform = `translateY(${limitedY * 0.3}px)`;
   }
 }
 
-function handleTouchEnd(e) {
+function handleTouchEnd() {
   if (!isSwiping || swipeLocked) return;
   isSwiping = false;
 
   const swipeDistance = touchStartY - touchCurrentY;
 
-  // Reset transform smoothly
   const activeSection = sections[current];
   if (activeSection) {
     activeSection.style.transition = "transform 0.3s ease";
@@ -328,19 +340,19 @@ function handleTouchEnd(e) {
     }, 300);
   }
 
-  // Ignore if user was tapping or dragging slightly
+  // Too short = not a swipe
   if (Math.abs(swipeDistance) < swipeThreshold) return;
 
   swipeLocked = true;
 
-  // Hide music details instantly
+  // Hide details instantly
   if (musicDetails && musicDetails.style.display === "block") {
     musicDetails.style.display = "none";
     musicDetails.style.opacity = "0";
     if (window.hideMusicDetails) window.hideMusicDetails(true);
   }
 
-  // Determine direction
+  // Change section
   if (swipeDistance > 0 && current < sections.length - 1) {
     current++;
     showSection(current);
@@ -349,15 +361,9 @@ function handleTouchEnd(e) {
     showSection(current);
   }
 
-  setTimeout(() => {
-    swipeLocked = false;
-  }, 800);
+  setTimeout(() => (swipeLocked = false), 800);
 }
 
-// Attach listeners
-window.addEventListener("touchstart", handleTouchStart, { passive: true });
-window.addEventListener("touchmove", handleTouchMove, { passive: true });
-window.addEventListener("touchend", handleTouchEnd, { passive: true });
 
   // --- Go To Section ---
   function goToSection(targetIndex) {
