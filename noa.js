@@ -203,7 +203,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- Helper: Animate Section Transition (desktop only) ---
   function showSection(index) {
+    if (window.innerWidth <= 991) return; // ❌ Disable animations on mobile
     if (musicDetails && musicDetails.style.display === "block") return;
+
     sections.forEach((sec, i) => {
       const heading = sec.querySelector(".hero-heading");
       const paragraph = sec.querySelector(".hero-paragraph");
@@ -217,7 +219,8 @@ document.addEventListener("DOMContentLoaded", () => {
         heading.style.transform = "translateY(0)";
         paragraph.style.transform = "translateY(0)";
         heading.style.transition = "opacity 0.8s ease, transform 0.8s ease";
-        paragraph.style.transition = "opacity 0.8s ease 0.1s, transform 0.8s ease 0.1s";
+        paragraph.style.transition =
+          "opacity 0.8s ease 0.1s, transform 0.8s ease 0.1s";
       } else {
         sec.style.opacity = "0";
         heading.style.opacity = "0";
@@ -236,6 +239,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- Hide music details when shown (desktop only) ---
   window.addEventListener("musicDetailsShow", () => {
+    if (window.innerWidth <= 991) return; // no effect on mobile
+
     if (current === 0) {
       const first = sections[0];
       if (first) {
@@ -312,7 +317,9 @@ document.addEventListener("DOMContentLoaded", () => {
     current = targetIndex;
 
     // Highlight active nav link
-    document.querySelectorAll(".nav-menu-link").forEach(b => b.classList.remove("active"));
+    document
+      .querySelectorAll(".nav-menu-link")
+      .forEach((b) => b.classList.remove("active"));
     if (targetIndex === 1) {
       if (whyBtn) whyBtn.classList.add("active");
       if (whyBtnMobile) whyBtnMobile.classList.add("active");
@@ -327,21 +334,20 @@ document.addEventListener("DOMContentLoaded", () => {
   const allWhyBtns = [whyBtn, whyBtnMobile].filter(Boolean);
   const allWhatBtns = [whatBtn, whatBtnMobile].filter(Boolean);
 
-  allWhyBtns.forEach(btn => {
-    btn.addEventListener("click", e => {
+  allWhyBtns.forEach((btn) => {
+    btn.addEventListener("click", (e) => {
       e.preventDefault();
       goToSection(1);
     });
   });
 
-  allWhatBtns.forEach(btn => {
-    btn.addEventListener("click", e => {
+  allWhatBtns.forEach((btn) => {
+    btn.addEventListener("click", (e) => {
       e.preventDefault();
       goToSection(2);
     });
   });
 });
-
 
 
 
