@@ -278,81 +278,85 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   window.addEventListener("wheel", handleScroll);
 
- // --- Mobile Swipe Logic (final fix for accidental section change) ---
+ // --- MOBILE SWIPE LOGIC (final stable version) ---
 const scrollWrapper = document.querySelector(".scroll-wrapper");
 let touchStartY = 0;
 let touchCurrentY = 0;
-let isSwiping = false;
+let isDragging = false;
 let swipeLocked = false;
-const swipeThreshold = 80; // px to trigger section switch
-const maxSwipeDistance = 120;
+const swipeThreshold = 80;     // distance to trigger a change
+const dragLimit = 100;         // visual drag limit
+const dragFactor = 0.3;        // how much section follows finger
+
+// Utility: is the touch inside a UI element we must ignore?
+function isTouchOnUI(target) {
+  return target.closest(
+    ".dot, .sound-on, .sound-off, .view-details-button, .music-details, .music-details-popup, button, a, input"
+  );
+}
 
 if (scrollWrapper) {
-  // --- Only track swipes on the scroll-wrapper ---
-  scrollWrapper.addEventListener("touchstart", handleTouchStart, { passive: true });
-  scrollWrapper.addEventListener("touchmove", handleTouchMove, { passive: true });
-  scrollWrapper.addEventListener("touchend", handleTouchEnd, { passive: true });
+  scrollWrapper.addEventListener("touchstart", handleStart, { passive: true });
+  scrollWrapper.addEventListener("touchmove", handleMove, { passive: false });
+  scrollWrapper.addEventListener("touchend", handleEnd, { passive: true });
 }
 
-// Ignore touch events on UI elements inside scroll-wrapper
-[".dot", ".view-details-button", "button", "a", "input", ".music-details", ".music-details-popup"].forEach(sel => {
-  document.querySelectorAll(sel).forEach(el => {
-    el.addEventListener("touchstart", e => e.stopPropagation(), { passive: true });
-    el.addEventListener("touchmove", e => e.stopPropagation(), { passive: true });
-    el.addEventListener("touchend", e => e.stopPropagation(), { passive: true });
-  });
-});
+function handleStart(e) {
+  // Ignore UI interactions
+  if (isTouchOnUI(e.target)) return;
 
-function handleTouchStart(e) {
-  // If music details are visible, disable swipe
+  // Block swipe if music details showing
   if (musicDetails && musicDetails.style.display === "block") return;
 
+  isDragging = true;
   touchStartY = e.touches[0].clientY;
   touchCurrentY = touchStartY;
-  isSwiping = true;
 }
 
-function handleTouchMove(e) {
-  if (!isSwiping || swipeLocked) return;
+function handleMove(e) {
+  if (!isDragging || swipeLocked) return;
 
   touchCurrentY = e.touches[0].clientY;
   const deltaY = touchCurrentY - touchStartY;
 
+  // Small moves = scroll-like, don't trigger browser rubber band
+  if (Math.abs(deltaY) < 10) return;
+
+  // Prevent default scroll
+  e.preventDefault();
+
   const activeSection = sections[current];
   if (activeSection) {
-    const limitedY = Math.max(Math.min(deltaY, maxSwipeDistance), -maxSwipeDistance);
-    activeSection.style.transform = `translateY(${limitedY * 0.3}px)`;
+    const limited = Math.max(Math.min(deltaY, dragLimit), -dragLimit);
+    activeSection.style.transform = `translateY(${limited * dragFactor}px)`;
   }
 }
 
-function handleTouchEnd() {
-  if (!isSwiping || swipeLocked) return;
-  isSwiping = false;
+function handleEnd() {
+  if (!isDragging || swipeLocked) return;
+  isDragging = false;
 
   const swipeDistance = touchStartY - touchCurrentY;
 
   const activeSection = sections[current];
   if (activeSection) {
-    activeSection.style.transition = "transform 0.3s ease";
+    activeSection.style.transition = "transform 0.25s ease";
     activeSection.style.transform = "translateY(0)";
-    setTimeout(() => {
-      activeSection.style.transition = "";
-    }, 300);
+    setTimeout(() => (activeSection.style.transition = ""), 250);
   }
 
-  // Too short = not a swipe
+  // Not enough distance = ignore
   if (Math.abs(swipeDistance) < swipeThreshold) return;
 
   swipeLocked = true;
 
-  // Hide details instantly
+  // Hide music details instantly if open
   if (musicDetails && musicDetails.style.display === "block") {
     musicDetails.style.display = "none";
     musicDetails.style.opacity = "0";
     if (window.hideMusicDetails) window.hideMusicDetails(true);
   }
 
-  // Change section
   if (swipeDistance > 0 && current < sections.length - 1) {
     current++;
     showSection(current);
@@ -361,9 +365,9 @@ function handleTouchEnd() {
     showSection(current);
   }
 
-  setTimeout(() => (swipeLocked = false), 800);
+  setTimeout(() => (swipeLocked = false), 700);
 }
-
+  
 
   // --- Go To Section ---
   function goToSection(targetIndex) {
