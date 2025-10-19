@@ -278,49 +278,86 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   window.addEventListener("wheel", handleScroll);
 
-  // --- Mobile Swipe Logic ---
-  let touchStartY = 0;
-  let touchEndY = 0;
+ // --- Mobile Swipe Logic (improved & smooth) ---
+let touchStartY = 0;
+let touchCurrentY = 0;
+let isSwiping = false;
+let swipeLocked = false;
+let swipeThreshold = 80; // px to trigger section switch
+let maxSwipeDistance = 120; // for limiting drag effect
 
-  function handleTouchStart(e) {
-    touchStartY = e.touches[0].clientY;
+function handleTouchStart(e) {
+  // Ignore touches on buttons, dots, links, popups
+  if (e.target.closest("button, a, .dot, .view-details-button, .music-details, .music-details-popup")) return;
+
+  // Disable swipe if details are open
+  if (musicDetails && musicDetails.style.display === "block") return;
+
+  touchStartY = e.touches[0].clientY;
+  touchCurrentY = touchStartY;
+  isSwiping = true;
+}
+
+function handleTouchMove(e) {
+  if (!isSwiping || swipeLocked) return;
+
+  touchCurrentY = e.touches[0].clientY;
+  const deltaY = touchCurrentY - touchStartY;
+
+  // Slight visual drag (smooth feel)
+  const activeSection = sections[current];
+  if (activeSection) {
+    const limitedY = Math.max(Math.min(deltaY, maxSwipeDistance), -maxSwipeDistance);
+    activeSection.style.transform = `translateY(${limitedY * 0.3}px)`; // subtle follow effect
+  }
+}
+
+function handleTouchEnd(e) {
+  if (!isSwiping || swipeLocked) return;
+  isSwiping = false;
+
+  const swipeDistance = touchStartY - touchCurrentY;
+
+  // Reset transform smoothly
+  const activeSection = sections[current];
+  if (activeSection) {
+    activeSection.style.transition = "transform 0.3s ease";
+    activeSection.style.transform = "translateY(0)";
+    setTimeout(() => {
+      activeSection.style.transition = "";
+    }, 300);
   }
 
-  function handleTouchMove(e) {
-    touchEndY = e.touches[0].clientY;
+  // Ignore if user was tapping or dragging slightly
+  if (Math.abs(swipeDistance) < swipeThreshold) return;
+
+  swipeLocked = true;
+
+  // Hide music details instantly
+  if (musicDetails && musicDetails.style.display === "block") {
+    musicDetails.style.display = "none";
+    musicDetails.style.opacity = "0";
+    if (window.hideMusicDetails) window.hideMusicDetails(true);
   }
 
-  function handleTouchEnd() {
-    const swipeDistance = touchStartY - touchEndY;
-    const minSwipeDistance = 50; // Minimum swipe distance to trigger section change
-    if (Math.abs(swipeDistance) < minSwipeDistance || isScrolling) return;
-
-    isScrolling = true;
-
-    // Hide music details instantly
-    if (musicDetails && musicDetails.style.display === "block") {
-      musicDetails.style.display = "none";
-      musicDetails.style.opacity = "0";
-      if (window.hideMusicDetails) window.hideMusicDetails(true);
-    }
-
-    if (swipeDistance > 0 && current < sections.length - 1) {
-      // swipe up → next section
-      current++;
-      showSection(current);
-    } else if (swipeDistance < 0 && current > 0) {
-      // swipe down → previous section
-      current--;
-      showSection(current);
-    }
-
-    setTimeout(() => (isScrolling = false), 800);
+  // Determine direction
+  if (swipeDistance > 0 && current < sections.length - 1) {
+    current++;
+    showSection(current);
+  } else if (swipeDistance < 0 && current > 0) {
+    current--;
+    showSection(current);
   }
 
-  // Attach mobile swipe listeners
-  window.addEventListener("touchstart", handleTouchStart, { passive: true });
-  window.addEventListener("touchmove", handleTouchMove, { passive: true });
-  window.addEventListener("touchend", handleTouchEnd, { passive: true });
+  setTimeout(() => {
+    swipeLocked = false;
+  }, 800);
+}
+
+// Attach listeners
+window.addEventListener("touchstart", handleTouchStart, { passive: true });
+window.addEventListener("touchmove", handleTouchMove, { passive: true });
+window.addEventListener("touchend", handleTouchEnd, { passive: true });
 
   // --- Go To Section ---
   function goToSection(targetIndex) {
