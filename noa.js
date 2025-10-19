@@ -187,6 +187,8 @@ function showMusicDetails() {
 // scroll + nav section logic
 document.addEventListener("DOMContentLoaded", () => {
   const sections = [
+    document.body.style.overflow = "hidden";
+document.documentElement.style.overscrollBehavior = "none";
     document.querySelector(".hero_inital-text-wrap"),
     document.querySelector(".hero_why-wrap"),
     document.querySelector(".hero_what-wrap")
@@ -282,18 +284,15 @@ document.addEventListener("DOMContentLoaded", () => {
 let touchStartY = 0;
 let lastMoveY = 0;
 let activeTouchId = null;
-const SWIPE_THRESHOLD = 50;     // Minimum swipe distance to trigger section change
-const PREVENT_THRESHOLD = 8;    // When to start blocking page scroll
+const SWIPE_THRESHOLD = 50; // Minimum swipe distance to trigger
+let isTransitioning = false;
 
-// --- Safe wrapper for hideMusicDetails ---
 function safeHideMusicDetails() {
   try {
     if (typeof window.hideMusicDetails === "function") {
       window.hideMusicDetails(true);
     }
-  } catch (err) {
-    // Fail silently if not defined yet
-  }
+  } catch (err) {}
 }
 
 function handleTouchStart(e) {
@@ -308,10 +307,8 @@ function handleTouchMove(e) {
   if (!t) return;
   lastMoveY = t.clientY;
 
-  // Prevent page scroll once it’s clearly a swipe gesture
-  if (Math.abs(touchStartY - lastMoveY) > PREVENT_THRESHOLD) {
-    e.preventDefault();
-  }
+  // Stop native scroll on Android
+  e.preventDefault();
 }
 
 function handleTouchEnd(e) {
@@ -319,10 +316,10 @@ function handleTouchEnd(e) {
   const endY = ct ? ct.clientY : lastMoveY;
   const swipeDistance = touchStartY - endY;
 
-  if (isScrolling) { activeTouchId = null; return; }
-  if (Math.abs(swipeDistance) < SWIPE_THRESHOLD) { activeTouchId = null; return; }
+  if (isTransitioning) return;
+  if (Math.abs(swipeDistance) < SWIPE_THRESHOLD) return;
 
-  isScrolling = true;
+  isTransitioning = true;
 
   // Hide music details instantly
   if (musicDetails && musicDetails.style.display === "block") {
@@ -331,24 +328,26 @@ function handleTouchEnd(e) {
     safeHideMusicDetails();
   }
 
+  sections.forEach(sec => sec.style.visibility = "hidden");
+
   if (swipeDistance > 0 && current < sections.length - 1) {
-  // swipe up → next section
-  sections.forEach(sec => sec.style.visibility = "hidden");
-  current++;
-  showSection(current);
-} else if (swipeDistance < 0 && current > 0) {
-  // swipe down → previous section
-  sections.forEach(sec => sec.style.visibility = "hidden");
-  current--;
-  showSection(current);
+    // Swipe up → next section
+    current++;
+  } else if (swipeDistance < 0 && current > 0) {
+    // Swipe down → previous section
+    current--;
+  }
+
+  requestAnimationFrame(() => {
+    showSection(current);
+    isTransitioning = false;
+  });
 }
 
-// Attach mobile swipe listeners
-// touchmove must be passive: false for preventDefault() to work
-window.addEventListener("touchstart", handleTouchStart, { passive: true });
+window.addEventListener("touchstart", handleTouchStart, { passive: false });
 window.addEventListener("touchmove", handleTouchMove, { passive: false });
-window.addEventListener("touchend", handleTouchEnd, { passive: true });
-window.addEventListener("touchcancel", handleTouchEnd, { passive: true });
+window.addEventListener("touchend", handleTouchEnd, { passive: false });
+window.addEventListener("touchcancel", handleTouchEnd, { passive: false });
 
   // --- Go To Section ---
   function goToSection(targetIndex) {
