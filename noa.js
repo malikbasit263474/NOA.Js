@@ -97,129 +97,30 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
- // is-music player_dots + audio player + music details logic
-document.addEventListener("DOMContentLoaded", () => {
-  const audio = document.getElementById("bg-music");
-  const dots = document.querySelectorAll(".dot");
-  const title = document.querySelector(".song-title");
-  const artist = document.querySelector(".artist-name");
-  const desc = document.querySelector(".song-description");
-  const details = document.querySelector(".music-details");
-  const soundOnIcons = document.querySelectorAll(".sound-on");
-  const soundOffIcons = document.querySelectorAll(".sound-off");
-
-  const mainSections = [
-    document.querySelector(".hero_inital-text-wrap"),
-    document.querySelector(".hero_why-wrap"),
-    document.querySelector(".hero_what-wrap")
-  ];
-
-  const scrollWrapper = document.querySelector(".scroll-wrapper"); // for mobile
-  let currentDot = null;
-  let isMuted = false;
-  let hideTimer = null;
-  let isShowingDetails = false;
-
-  // --- INITIAL SETUP ---
-  audio.volume = 0.5;
-  audio.muted = false;
-  soundOnIcons.forEach(i => (i.style.display = "block"));
-  soundOffIcons.forEach(i => (i.style.display = "none"));
-  details.style.display = "none";
-
-  // --- PLAY / PAUSE SONG ---
-  function playOrPauseSong(dot, forcePlay = false) {
-    if (!forcePlay && dot === currentDot && !audio.paused) {
-      audio.pause();
-      audio.currentTime = 0;
-      dot.classList.remove("active");
-      currentDot = null;
-      isShowingDetails = false;
-      hideMusicDetails(true);
-      restoreCurrentSection();
-      return;
-    }
-
-    const newSrc = dot.getAttribute("data-song");
-    const newTitle = dot.getAttribute("data-title");
-    const newArtist = dot.getAttribute("data-artist");
-    const newDesc = dot.getAttribute("data-description");
-
-    if (newSrc && audio.src !== newSrc) {
-      audio.src = newSrc;
-      audio.currentTime = 0;
-    }
-
-    audio.muted = isMuted;
-
-    const playPromise = audio.play();
-    if (playPromise) {
-      playPromise.catch(() => {
-        document.addEventListener("click", () => audio.play(), { once: true });
-      });
-    }
-
-    if (!forcePlay) {
-      title.textContent = newTitle || "";
-      artist.textContent = newArtist || "";
-      desc.innerHTML = newDesc || "";
-      showMusicDetails();
-    }
-
-    if (currentDot) currentDot.classList.remove("active");
-    dot.classList.add("active");
-    currentDot = dot;
-  }
-
-  // --- LOOP AUDIO ---
-  audio.addEventListener("ended", () => {
-    audio.currentTime = 0;
-    audio.play();
-  });
-
-  // --- TOGGLE SOUND ---
-  function toggleSound() {
-    if (audio.paused && currentDot) audio.play();
-    isMuted = !isMuted;
-    audio.muted = isMuted;
-    soundOnIcons.forEach(i => (i.style.display = isMuted ? "none" : "block"));
-    soundOffIcons.forEach(i => (i.style.display = isMuted ? "block" : "none"));
-  }
-
-  document.querySelectorAll(".sound-on, .sound-off").forEach(btn => {
-    btn.addEventListener("click", e => {
-      e.stopPropagation();
-      toggleSound();
-    });
-  });
-
   // --- SHOW MUSIC DETAILS ---
-  function showMusicDetails() {
-    document.dispatchEvent(new Event("musicDetailsShow"));
-    isShowingDetails = true;
+function showMusicDetails() {
+  document.dispatchEvent(new Event("musicDetailsShow"));
+  isShowingDetails = true;
 
-    // Desktop: hide hero sections
-    if (window.innerWidth > 991) {
-      mainSections.forEach(sec => {
-        if (sec.classList.contains("hero_inital-text-wrap")) {
-          sec.style.transition = "none";
-          sec.style.opacity = "0";
-          sec.style.visibility = "hidden";
-        } else {
-          sec.style.opacity = "0";
-        }
-      });
+  // Instantly hide all hero sections
+  mainSections.forEach(sec => {
+    // If it's the first hero section → instantly hide (no fade)
+    if (sec.classList.contains("hero_inital-text-wrap")) {
+      sec.style.transition = "none";
+      sec.style.opacity = "0";
+      sec.style.visibility = "hidden";
     } else {
-      // Mobile: hide scroll wrapper instead
-      if (scrollWrapper) scrollWrapper.style.display = "none";
+      sec.style.opacity = "0";
     }
+  });
 
-    details.style.display = "block";
-    details.style.opacity = "1";
+  details.style.transition = "none";
+  details.style.display = "block";
+  details.style.opacity = "1";
 
-    if (hideTimer) clearTimeout(hideTimer);
-    hideTimer = setTimeout(() => hideMusicDetails(false), 5000);
-  }
+  if (hideTimer) clearTimeout(hideTimer);
+  hideTimer = setTimeout(() => hideMusicDetails(false), 5000);
+}
 
   // --- HIDE MUSIC DETAILS ---
   function hideMusicDetails(instant = false) {
@@ -229,64 +130,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     isShowingDetails = false;
+    details.style.transition = "none";
     details.style.opacity = "0";
     details.style.display = "none";
-
-    // Desktop restore
-    if (window.innerWidth > 991) {
-      restoreCurrentSection();
-    } else {
-      // Mobile: restore scroll wrapper
-      if (scrollWrapper) scrollWrapper.style.display = "block";
-    }
+    restoreCurrentSection();
   }
-
-  // --- Restore current section (desktop only) ---
-  function restoreCurrentSection() {
-    const active = mainSections.find(
-      sec => sec.style.visibility === "visible" || sec.style.opacity === "1"
-    );
-    if (active) {
-      active.style.opacity = "1";
-      active.style.visibility = "visible";
-    } else {
-      const first = mainSections[0];
-      if (first) {
-        first.style.visibility = "visible";
-        first.style.opacity = "1";
-      }
-    }
-  }
-
-  // --- DOT CLICK → TOGGLE SONG ---
-  dots.forEach(dot => dot.addEventListener("click", () => playOrPauseSong(dot)));
-
-  // --- AUTO-PLAY FIRST SONG ON LOAD ---
-  const firstDot = dots[0];
-  if (firstDot) {
-    const firstSrc = firstDot.getAttribute("data-song");
-    if (firstSrc) {
-      audio.src = firstSrc;
-      firstDot.classList.add("active");
-      currentDot = firstDot;
-
-      const playPromise = audio.play();
-      if (playPromise) {
-        playPromise.catch(() => {
-          document.addEventListener("click", () => audio.play(), { once: true });
-        });
-      }
-    }
-  }
-
-  // --- HIDE DETAILS ON DESKTOP SCROLL ---
-  window.addEventListener("wheel", () => {
-    if (isShowingDetails && window.innerWidth > 991) hideMusicDetails(true);
-  });
-
-  // Expose globally
-  window.hideMusicDetails = hideMusicDetails;
-});
 
   // --- Restore current section ---
   function restoreCurrentSection() {
@@ -333,7 +181,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // Expose globally
   window.hideMusicDetails = hideMusicDetails;
 });
-
 
 
 // scroll + nav section logic
