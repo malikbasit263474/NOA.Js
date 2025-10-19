@@ -336,7 +336,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
-// scroll + nav section logic (desktop only)
+// scroll + nav section logic
 document.addEventListener("DOMContentLoaded", () => {
   const sections = [
     document.querySelector(".hero_inital-text-wrap"),
@@ -344,7 +344,6 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelector(".hero_what-wrap")
   ];
   const musicDetails = document.querySelector(".music-details");
-  const scrollWrapper = document.querySelector(".scroll-wrapper");
   const whyBtn = document.querySelector(".why-link");
   const whatBtn = document.querySelector(".what-link");
   const whyBtnMobile = document.querySelector(".why-link.is-mobile");
@@ -353,16 +352,13 @@ document.addEventListener("DOMContentLoaded", () => {
   let current = 0;
   let isScrolling = false;
 
-  // --- Helper: Animate Section Transition (desktop only) ---
+  // --- Helper: Animate Section Transition ---
   function showSection(index) {
-    if (window.innerWidth <= 991) return; // 🔒 Disable animations & transitions on mobile
     if (musicDetails && musicDetails.style.display === "block") return;
-
     sections.forEach((sec, i) => {
       const heading = sec.querySelector(".hero-heading");
       const paragraph = sec.querySelector(".hero-paragraph");
       if (!heading || !paragraph) return;
-
       if (i === index) {
         sec.style.visibility = "visible";
         sec.style.opacity = "1";
@@ -371,8 +367,7 @@ document.addEventListener("DOMContentLoaded", () => {
         heading.style.transform = "translateY(0)";
         paragraph.style.transform = "translateY(0)";
         heading.style.transition = "opacity 0.8s ease, transform 0.8s ease";
-        paragraph.style.transition =
-          "opacity 0.8s ease 0.1s, transform 0.8s ease 0.1s";
+        paragraph.style.transition = "opacity 0.8s ease 0.1s, transform 0.8s ease 0.1s";
       } else {
         sec.style.opacity = "0";
         heading.style.opacity = "0";
@@ -386,13 +381,11 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // --- Initialize first section (desktop only) ---
+  // --- Initialize first section ---
   showSection(current);
 
-  // --- Hide music details when shown (desktop only) ---
+  // --- Hide music details when shown ---
   window.addEventListener("musicDetailsShow", () => {
-    if (window.innerWidth <= 991) return; // ❌ no effect on mobile
-
     if (current === 0) {
       const first = sections[0];
       if (first) {
@@ -413,9 +406,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // --- Desktop Scroll Logic ---
+  // --- Scroll Logic (disabled for ≤991px) ---
   function handleScroll(e) {
-    if (window.innerWidth <= 991) return; // ❌ disable on mobile
+    if (window.innerWidth <= 991) return; // disable on mobile
     if (isScrolling) return;
     isScrolling = true;
 
@@ -438,26 +431,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   window.addEventListener("wheel", handleScroll);
 
-  // --- MOBILE: Only handle music details ---
-  if (window.innerWidth <= 991 && scrollWrapper && musicDetails) {
-    document.addEventListener("musicDetailsShow", () => {
-      // hide scroll-wrapper completely
-      scrollWrapper.style.display = "none";
-      musicDetails.style.display = "block";
-      musicDetails.style.opacity = "1";
-
-      // hide details after 5s and restore wrapper
-      setTimeout(() => {
-        musicDetails.style.display = "none";
-        musicDetails.style.opacity = "0";
-        scrollWrapper.style.display = "block";
-      }, 5000);
-    });
-  }
-
-  // --- Go To Section (desktop only) ---
+  // --- Go To Section ---
   function goToSection(targetIndex) {
-    if (window.innerWidth <= 991) return; // ❌ disable on mobile
     if (musicDetails && musicDetails.style.display === "block") {
       musicDetails.style.display = "none";
       musicDetails.style.opacity = "0";
@@ -480,7 +455,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // --- Attach nav button events (desktop only) ---
+  // --- Attach Events (Desktop + Mobile) ---
   const allWhyBtns = [whyBtn, whyBtnMobile].filter(Boolean);
   const allWhatBtns = [whatBtn, whatBtnMobile].filter(Boolean);
 
@@ -498,7 +473,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 });
-
 
 // hover tooltip logic
 document.addEventListener("DOMContentLoaded", () => {
@@ -518,7 +492,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
-
 
 
 // mobile details popup logic
