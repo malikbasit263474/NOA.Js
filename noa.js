@@ -279,6 +279,95 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("wheel", handleScroll);
 
   
+ // --- MOBILE SWIPE LOGIC (final stable version) ---
+const scrollWrapper = document.querySelector(".scroll-wrapper");
+let touchStartY = 0;
+let touchCurrentY = 0;
+let isDragging = false;
+let swipeLocked = false;
+const swipeThreshold = 80;     // distance to trigger a change
+const dragLimit = 100;         // visual drag limit
+const dragFactor = 0.3;        // how much section follows finger
+
+// Utility: is the touch inside a UI element we must ignore?
+function isTouchOnUI(target) {
+  return target.closest(
+    ".dot, .sound-on, .sound-off, .view-details-button, .music-details, .music-details-popup, button, a, input"
+  );
+}
+
+if (scrollWrapper) {
+  scrollWrapper.addEventListener("touchstart", handleStart, { passive: true });
+  scrollWrapper.addEventListener("touchmove", handleMove, { passive: false });
+  scrollWrapper.addEventListener("touchend", handleEnd, { passive: true });
+}
+
+function handleStart(e) {
+  // Ignore UI interactions
+  if (isTouchOnUI(e.target)) return;
+
+  // Block swipe if music details showing
+  if (musicDetails && musicDetails.style.display === "block") return;
+
+  isDragging = true;
+  touchStartY = e.touches[0].clientY;
+  touchCurrentY = touchStartY;
+}
+
+function handleMove(e) {
+  if (!isDragging || swipeLocked) return;
+
+  touchCurrentY = e.touches[0].clientY;
+  const deltaY = touchCurrentY - touchStartY;
+
+  // Small moves = scroll-like, don't trigger browser rubber band
+  if (Math.abs(deltaY) < 10) return;
+
+  // Prevent default scroll
+  e.preventDefault();
+
+  const activeSection = sections[current];
+  if (activeSection) {
+    const limited = Math.max(Math.min(deltaY, dragLimit), -dragLimit);
+    activeSection.style.transform = `translateY(${limited * dragFactor}px)`;
+  }
+}
+
+function handleEnd() {
+  if (!isDragging || swipeLocked) return;
+  isDragging = false;
+
+  const swipeDistance = touchStartY - touchCurrentY;
+
+  const activeSection = sections[current];
+  if (activeSection) {
+    activeSection.style.transition = "transform 0.25s ease";
+    activeSection.style.transform = "translateY(0)";
+    setTimeout(() => (activeSection.style.transition = ""), 250);
+  }
+
+  // Not enough distance = ignore
+  if (Math.abs(swipeDistance) < swipeThreshold) return;
+
+  swipeLocked = true;
+
+  // Hide music details instantly if open
+  if (musicDetails && musicDetails.style.display === "block") {
+    musicDetails.style.display = "none";
+    musicDetails.style.opacity = "0";
+    if (window.hideMusicDetails) window.hideMusicDetails(true);
+  }
+
+  if (swipeDistance > 0 && current < sections.length - 1) {
+    current++;
+    showSection(current);
+  } else if (swipeDistance < 0 && current > 0) {
+    current--;
+    showSection(current);
+  }
+
+  setTimeout(() => (swipeLocked = false), 700);
+}
 
   // --- Go To Section ---
   function goToSection(targetIndex) {
