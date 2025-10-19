@@ -1,3 +1,4 @@
+
 // is-music player_dots + audio player + music details logic
 document.addEventListener("DOMContentLoaded", () => {
   const audio = document.getElementById("bg-music");
@@ -187,8 +188,6 @@ function showMusicDetails() {
 // scroll + nav section logic
 document.addEventListener("DOMContentLoaded", () => {
   const sections = [
-    document.body.style.overflow = "hidden";
-document.documentElement.style.overscrollBehavior = "none";
     document.querySelector(".hero_inital-text-wrap"),
     document.querySelector(".hero_why-wrap"),
     document.querySelector(".hero_what-wrap")
@@ -284,15 +283,18 @@ document.documentElement.style.overscrollBehavior = "none";
 let touchStartY = 0;
 let lastMoveY = 0;
 let activeTouchId = null;
-const SWIPE_THRESHOLD = 50; // Minimum swipe distance to trigger
-let isTransitioning = false;
+const SWIPE_THRESHOLD = 50;     // Minimum swipe distance to trigger section change
+const PREVENT_THRESHOLD = 8;    // When to start blocking page scroll
 
+// --- Safe wrapper for hideMusicDetails ---
 function safeHideMusicDetails() {
   try {
     if (typeof window.hideMusicDetails === "function") {
       window.hideMusicDetails(true);
     }
-  } catch (err) {}
+  } catch (err) {
+    // Fail silently if not defined yet
+  }
 }
 
 function handleTouchStart(e) {
@@ -307,8 +309,10 @@ function handleTouchMove(e) {
   if (!t) return;
   lastMoveY = t.clientY;
 
-  // Stop native scroll on Android
-  e.preventDefault();
+  // Prevent page scroll once it’s clearly a swipe gesture
+  if (Math.abs(touchStartY - lastMoveY) > PREVENT_THRESHOLD) {
+    e.preventDefault();
+  }
 }
 
 function handleTouchEnd(e) {
@@ -316,10 +320,10 @@ function handleTouchEnd(e) {
   const endY = ct ? ct.clientY : lastMoveY;
   const swipeDistance = touchStartY - endY;
 
-  if (isTransitioning) return;
-  if (Math.abs(swipeDistance) < SWIPE_THRESHOLD) return;
+  if (isScrolling) { activeTouchId = null; return; }
+  if (Math.abs(swipeDistance) < SWIPE_THRESHOLD) { activeTouchId = null; return; }
 
-  isTransitioning = true;
+  isScrolling = true;
 
   // Hide music details instantly
   if (musicDetails && musicDetails.style.display === "block") {
@@ -328,26 +332,26 @@ function handleTouchEnd(e) {
     safeHideMusicDetails();
   }
 
-  sections.forEach(sec => sec.style.visibility = "hidden");
-
   if (swipeDistance > 0 && current < sections.length - 1) {
-    // Swipe up → next section
+    // swipe up → next section
     current++;
+    showSection(current);
   } else if (swipeDistance < 0 && current > 0) {
-    // Swipe down → previous section
+    // swipe down → previous section
     current--;
+    showSection(current);
   }
 
-  requestAnimationFrame(() => {
-    showSection(current);
-    isTransitioning = false;
-  });
+  setTimeout(() => (isScrolling = false), 800);
+  activeTouchId = null;
 }
 
-window.addEventListener("touchstart", handleTouchStart, { passive: false });
+// Attach mobile swipe listeners
+// touchmove must be passive: false for preventDefault() to work
+window.addEventListener("touchstart", handleTouchStart, { passive: true });
 window.addEventListener("touchmove", handleTouchMove, { passive: false });
-window.addEventListener("touchend", handleTouchEnd, { passive: false });
-window.addEventListener("touchcancel", handleTouchEnd, { passive: false });
+window.addEventListener("touchend", handleTouchEnd, { passive: true });
+window.addEventListener("touchcancel", handleTouchEnd, { passive: true });
 
   // --- Go To Section ---
   function goToSection(targetIndex) {
