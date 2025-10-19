@@ -183,6 +183,7 @@ function showMusicDetails() {
 });
 
 
+
 // scroll + nav section logic
 document.addEventListener("DOMContentLoaded", () => {
   const sections = [
@@ -253,9 +254,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // --- Scroll Logic (disabled for ≤991px) ---
+  // --- Desktop Scroll Logic ---
   function handleScroll(e) {
-    if (window.innerWidth <= 991) return; // disable on mobile
     if (isScrolling) return;
     isScrolling = true;
 
@@ -277,6 +277,80 @@ document.addEventListener("DOMContentLoaded", () => {
     setTimeout(() => (isScrolling = false), 800);
   }
   window.addEventListener("wheel", handleScroll);
+
+// --- Mobile Swipe Logic ---
+let touchStartY = 0;
+let lastMoveY = 0;
+let activeTouchId = null;
+const SWIPE_THRESHOLD = 50;     // Minimum swipe distance to trigger section change
+const PREVENT_THRESHOLD = 8;    // When to start blocking page scroll
+
+// --- Safe wrapper for hideMusicDetails ---
+function safeHideMusicDetails() {
+  try {
+    if (typeof window.hideMusicDetails === "function") {
+      window.hideMusicDetails(true);
+    }
+  } catch (err) {
+    // Fail silently if not defined yet
+  }
+}
+
+function handleTouchStart(e) {
+  const t = e.touches[0];
+  activeTouchId = t.identifier;
+  touchStartY = t.clientY;
+  lastMoveY = t.clientY;
+}
+
+function handleTouchMove(e) {
+  const t = [...e.touches].find(tt => tt.identifier === activeTouchId) || e.touches[0];
+  if (!t) return;
+  lastMoveY = t.clientY;
+
+  // Prevent page scroll once it’s clearly a swipe gesture
+  if (Math.abs(touchStartY - lastMoveY) > PREVENT_THRESHOLD) {
+    e.preventDefault();
+  }
+}
+
+function handleTouchEnd(e) {
+  const ct = [...e.changedTouches].find(tt => tt.identifier === activeTouchId) || e.changedTouches[0];
+  const endY = ct ? ct.clientY : lastMoveY;
+  const swipeDistance = touchStartY - endY;
+
+  if (isScrolling) { activeTouchId = null; return; }
+  if (Math.abs(swipeDistance) < SWIPE_THRESHOLD) { activeTouchId = null; return; }
+
+  isScrolling = true;
+
+  // Hide music details instantly
+  if (musicDetails && musicDetails.style.display === "block") {
+    musicDetails.style.display = "none";
+    musicDetails.style.opacity = "0";
+    safeHideMusicDetails();
+  }
+
+  if (swipeDistance > 0 && current < sections.length - 1) {
+    // swipe up → next section
+    current++;
+    showSection(current);
+  } else if (swipeDistance < 0 && current > 0) {
+    // swipe down → previous section
+    current--;
+    showSection(current);
+  }
+
+  setTimeout(() => (isScrolling = false), 800);
+  activeTouchId = null;
+}
+
+// Attach mobile swipe listeners
+// touchmove must be passive: false for preventDefault() to work
+window.addEventListener("touchstart", handleTouchStart, { passive: true });
+window.addEventListener("touchmove", handleTouchMove, { passive: false });
+window.addEventListener("touchend", handleTouchEnd, { passive: true });
+window.addEventListener("touchcancel", handleTouchEnd, { passive: true });
 
   // --- Go To Section ---
   function goToSection(targetIndex) {
@@ -321,6 +395,9 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
+
+
+
 // hover tooltip logic
 document.addEventListener("DOMContentLoaded", () => {
   const wrappers = document.querySelectorAll(".music-player-wrapper");
@@ -339,6 +416,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
 
 
 // mobile details popup logic
