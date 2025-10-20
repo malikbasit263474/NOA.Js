@@ -69,7 +69,7 @@ document.addEventListener("DOMContentLoaded", () => {
       artist.textContent = newArtist || "";
       desc.innerHTML = newDesc || "";
 const metaDescEl = document.querySelector(".song-meta-description");
-if (metaDescEl) metaDescEl.innerHTML = newMeta || "";
+if (metaDescEl) metaDescEl.innerText = newMeta || "";
       showMusicDetails();
     }
 
