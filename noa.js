@@ -2,6 +2,18 @@
 document.addEventListener("DOMContentLoaded", () => {
   const audio = document.getElementById("bg-music");
   const dots = document.querySelectorAll(".dot");
+  dots.forEach(dot => {
+    dot.addEventListener("click", () => {
+      const newMeta = dot.getAttribute("data-metatitle");
+      const metaDescEl = document.querySelector(".song-meta-description");
+      if (metaDescEl) {
+        metaDescEl.innerText = newMeta || "";
+      } else {
+        console.warn("No .song-meta-description found");
+      }
+    });
+  });
+});
   const title = document.querySelector(".song-title");
   const artist = document.querySelector(".artist-name");
   const desc = document.querySelector(".song-description");
