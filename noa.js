@@ -1,19 +1,7 @@
-// is-music player_dots + audio player + music details logic
+// --- IS-MUSIC PLAYER + AUDIO PLAYER + MUSIC DETAILS LOGIC ---
 document.addEventListener("DOMContentLoaded", () => {
   const audio = document.getElementById("bg-music");
   const dots = document.querySelectorAll(".dot");
-  dots.forEach(dot => {
-    dot.addEventListener("click", () => {
-      const newMeta = dot.getAttribute("data-metatitle");
-      const metaDescEl = document.querySelector(".song-meta-description");
-      if (metaDescEl) {
-        metaDescEl.innerText = newMeta || "";
-      } else {
-        console.warn("No .song-meta-description found");
-      }
-    });
-  });
-});
   const title = document.querySelector(".song-title");
   const artist = document.querySelector(".artist-name");
   const desc = document.querySelector(".song-description");
@@ -34,15 +22,16 @@ document.addEventListener("DOMContentLoaded", () => {
   let isShowingDetails = false;
 
   // --- INITIAL SETUP ---
-  audio.volume = 0.5;
-  audio.muted = false;
+  if (audio) {
+    audio.volume = 0.5;
+    audio.muted = false;
+  }
   soundOnIcons.forEach(i => (i.style.display = "block"));
   soundOffIcons.forEach(i => (i.style.display = "none"));
   details.style.display = "none";
 
   // --- PLAY / PAUSE SONG ---
   function playOrPauseSong(dot, forcePlay = false) {
-    // If clicking active dot again → stop
     if (!forcePlay && dot === currentDot && !audio.paused) {
       audio.pause();
       audio.currentTime = 0;
@@ -58,7 +47,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const newTitle = dot.getAttribute("data-title");
     const newArtist = dot.getAttribute("data-artist");
     const newDesc = dot.getAttribute("data-description");
-    const newMeta = dot.getAttribute("data-metatitle"); // ✅ fetch meta text
+    const newMeta = dot.getAttribute("data-metatitle");
 
     if (newSrc && audio.src !== newSrc) {
       audio.src = newSrc;
@@ -66,22 +55,21 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     audio.muted = isMuted;
-
     const playPromise = audio.play();
     if (playPromise) {
       playPromise.catch(() => {
-        // fallback if autoplay blocked
         document.addEventListener("click", () => audio.play(), { once: true });
       });
     }
 
-    // Only show details after user click
     if (!forcePlay) {
       title.textContent = newTitle || "";
       artist.textContent = newArtist || "";
       desc.innerHTML = newDesc || "";
-const metaDescEl = document.querySelector(".song-meta-description");
-if (metaDescEl) metaDescEl.innerText = newMeta || "";
+
+      // ✅ Update metadata text
+      if (metaDesc) metaDesc.innerText = newMeta || "";
+
       showMusicDetails();
     }
 
@@ -118,7 +106,6 @@ if (metaDescEl) metaDescEl.innerText = newMeta || "";
     document.dispatchEvent(new Event("musicDetailsShow"));
     isShowingDetails = true;
 
-    // Instantly hide all hero sections
     mainSections.forEach(sec => {
       if (sec.classList.contains("hero_inital-text-wrap")) {
         sec.style.transition = "none";
@@ -151,7 +138,7 @@ if (metaDescEl) metaDescEl.innerText = newMeta || "";
     restoreCurrentSection();
   }
 
-  // --- Restore current section ---
+  // --- RESTORE CURRENT SECTION ---
   function restoreCurrentSection() {
     const active = mainSections.find(sec => sec.style.visibility === "visible" || sec.style.opacity === "1");
     if (active) {
@@ -166,10 +153,10 @@ if (metaDescEl) metaDescEl.innerText = newMeta || "";
     }
   }
 
-  // --- DOT CLICK → TOGGLE SONG ---
+  // --- DOT CLICK ---
   dots.forEach(dot => dot.addEventListener("click", () => playOrPauseSong(dot)));
 
-  // --- AUTO-PLAY FIRST SONG ON LOAD ---
+  // --- AUTO-PLAY FIRST SONG ---
   const firstDot = dots[0];
   if (firstDot) {
     const firstSrc = firstDot.getAttribute("data-song");
