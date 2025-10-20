@@ -68,7 +68,12 @@ document.addEventListener("DOMContentLoaded", () => {
       desc.innerHTML = newDesc || "";
 
       // ✅ Update metadata text
-      if (metaDesc) metaDesc.innerText = newMeta || "";
+      const metaDescEl = document.querySelector(".song-meta-description");
+if (metaDescEl) {
+  metaDescEl.innerText = newMeta || "";
+} else {
+  console.warn("⚠️ No .song-meta-description found when updating meta text");
+}
 
       showMusicDetails();
     }
