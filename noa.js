@@ -66,7 +66,14 @@ document.addEventListener("DOMContentLoaded", () => {
       title.textContent = newTitle || "";
       artist.textContent = newArtist || "";
       desc.innerHTML = newDesc || "";
+      
+// ✅ Update description + meta description in popup if visible
+const popupDesc = document.querySelector(".song-description.is-text-popup");
+const popupMeta = document.querySelector(".song-meta-description.is-text-popup");
 
+if (popupDesc) popupDesc.innerHTML = newDesc || "";
+if (popupMeta) popupMeta.innerText = newMeta || "";
+      
       // ✅ Update metadata text
       const metaDescEl = document.querySelector(".song-meta-description");
 if (metaDescEl) {
