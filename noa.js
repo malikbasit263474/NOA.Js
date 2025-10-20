@@ -1,4 +1,3 @@
-
 // is-music player_dots + audio player + music details logic
 document.addEventListener("DOMContentLoaded", () => {
   const audio = document.getElementById("bg-music");
@@ -6,6 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const title = document.querySelector(".song-title");
   const artist = document.querySelector(".artist-name");
   const desc = document.querySelector(".song-description");
+  const metaDesc = document.querySelector(".song-meta-description"); // ✅ new element
   const details = document.querySelector(".music-details");
   const soundOnIcons = document.querySelectorAll(".sound-on");
   const soundOffIcons = document.querySelectorAll(".sound-off");
@@ -46,6 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const newTitle = dot.getAttribute("data-title");
     const newArtist = dot.getAttribute("data-artist");
     const newDesc = dot.getAttribute("data-description");
+    const newMeta = dot.getAttribute("data-metatitle"); // ✅ fetch meta text
 
     if (newSrc && audio.src !== newSrc) {
       audio.src = newSrc;
@@ -67,6 +68,7 @@ document.addEventListener("DOMContentLoaded", () => {
       title.textContent = newTitle || "";
       artist.textContent = newArtist || "";
       desc.innerHTML = newDesc || "";
+      if (metaDesc) metaDesc.innerHTML = newMeta || ""; // ✅ update meta details
       showMusicDetails();
     }
 
@@ -99,29 +101,28 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // --- SHOW MUSIC DETAILS ---
-function showMusicDetails() {
-  document.dispatchEvent(new Event("musicDetailsShow"));
-  isShowingDetails = true;
+  function showMusicDetails() {
+    document.dispatchEvent(new Event("musicDetailsShow"));
+    isShowingDetails = true;
 
-  // Instantly hide all hero sections
-  mainSections.forEach(sec => {
-    // If it's the first hero section → instantly hide (no fade)
-    if (sec.classList.contains("hero_inital-text-wrap")) {
-      sec.style.transition = "none";
-      sec.style.opacity = "0";
-      sec.style.visibility = "hidden";
-    } else {
-      sec.style.opacity = "0";
-    }
-  });
+    // Instantly hide all hero sections
+    mainSections.forEach(sec => {
+      if (sec.classList.contains("hero_inital-text-wrap")) {
+        sec.style.transition = "none";
+        sec.style.opacity = "0";
+        sec.style.visibility = "hidden";
+      } else {
+        sec.style.opacity = "0";
+      }
+    });
 
-  details.style.transition = "none";
-  details.style.display = "block";
-  details.style.opacity = "1";
+    details.style.transition = "none";
+    details.style.display = "block";
+    details.style.opacity = "1";
 
-  if (hideTimer) clearTimeout(hideTimer);
-  hideTimer = setTimeout(() => hideMusicDetails(false), 5000);
-}
+    if (hideTimer) clearTimeout(hideTimer);
+    hideTimer = setTimeout(() => hideMusicDetails(false), 5000);
+  }
 
   // --- HIDE MUSIC DETAILS ---
   function hideMusicDetails(instant = false) {
@@ -164,7 +165,6 @@ function showMusicDetails() {
       firstDot.classList.add("active");
       currentDot = firstDot;
 
-      // Try autoplay, fallback on click if blocked
       const playPromise = audio.play();
       if (playPromise) {
         playPromise.catch(() => {
