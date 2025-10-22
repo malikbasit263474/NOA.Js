@@ -267,6 +267,70 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
   });
+  // --- MOBILE SWIPE LOGIC (horizontal) ---
+document.addEventListener("DOMContentLoaded", () => {
+  const sections = [
+    document.querySelector(".hero_inital-text-wrap"),
+    document.querySelector(".hero_why-wrap"),
+    document.querySelector(".hero_what-wrap")
+  ];
+
+  let current = 0;
+  let touchStartX = 0;
+  let touchEndX = 0;
+
+  function showSection(index) {
+    sections.forEach((sec, i) => {
+      const heading = sec.querySelector(".hero-heading");
+      const paragraph = sec.querySelector(".hero-paragraph");
+      if (!heading || !paragraph) return;
+
+      if (i === index) {
+        sec.style.visibility = "visible";
+        sec.style.opacity = "1";
+        heading.style.opacity = "1";
+        paragraph.style.opacity = "1";
+        heading.style.transform = "translateY(0)";
+        paragraph.style.transform = "translateY(0)";
+      } else {
+        sec.style.visibility = "hidden";
+        sec.style.opacity = "0";
+        heading.style.opacity = "0";
+        paragraph.style.opacity = "0";
+        heading.style.transform = "translateY(30px)";
+        paragraph.style.transform = "translateY(30px)";
+      }
+    });
+  }
+
+  // Swipe detection
+  function handleGesture() {
+    const diffX = touchEndX - touchStartX;
+
+    if (Math.abs(diffX) > 50) { // Minimum swipe distance
+      if (diffX < 0 && current < sections.length - 1) {
+        current++; // Swipe LEFT → Next section
+      } else if (diffX > 0 && current > 0) {
+        current--; // Swipe RIGHT → Previous section
+      }
+      showSection(current);
+    }
+  }
+
+  // Only enable for mobile / tablet
+  if (window.matchMedia("(max-width: 991px)").matches) {
+    document.addEventListener("touchstart", e => {
+      touchStartX = e.changedTouches[0].screenX;
+    });
+
+    document.addEventListener("touchend", e => {
+      touchEndX = e.changedTouches[0].screenX;
+      handleGesture();
+    });
+  }
+
+  showSection(current);
+});
 
   // --- Desktop Scroll Logic ---
   function handleScroll(e) {
