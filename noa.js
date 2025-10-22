@@ -197,13 +197,14 @@ if (metaDescEl) {
 
 
 
-// scroll + nav section logic (desktop + mobile)
+// --- SCROLL + NAV SECTION LOGIC (DESKTOP ONLY) ---
 document.addEventListener("DOMContentLoaded", () => {
   const sections = [
     document.querySelector(".hero_inital-text-wrap"),
     document.querySelector(".hero_why-wrap"),
     document.querySelector(".hero_what-wrap")
   ];
+
   const musicDetails = document.querySelector(".music-details");
   const whyBtn = document.querySelector(".why-link");
   const whatBtn = document.querySelector(".what-link");
@@ -212,12 +213,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let current = 0;
   let isScrolling = false;
-  let touchStartX = 0;
-  let touchEndX = 0;
 
   // --- Helper: Animate Section Transition ---
   function showSection(index) {
     if (musicDetails && musicDetails.style.display === "block") return;
+
     sections.forEach((sec, i) => {
       const heading = sec.querySelector(".hero-heading");
       const paragraph = sec.querySelector(".hero-paragraph");
@@ -272,7 +272,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- Desktop Scroll Logic ---
   function handleScroll(e) {
-    if (window.matchMedia("(max-width: 991px)").matches) return; // ❌ disable on mobile
+    // Only run on desktop
+    if (window.matchMedia("(max-width: 991px)").matches) return;
 
     if (isScrolling) return;
     isScrolling = true;
@@ -294,55 +295,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     setTimeout(() => (isScrolling = false), 800);
   }
+
   window.addEventListener("wheel", handleScroll);
-
-  // --- MOBILE SWIPE LOGIC (horizontal) ---
-if (window.matchMedia("(max-width: 991px)").matches) {
-  const swipeSurface = document.querySelector(".swipe-surface");
-  let startX = 0, startY = 0, lastX = 0, lastY = 0, lockedAxis = null;
-
-  function showSectionSafe(index) {
-    if (index < 0 || index >= sections.length) return;
-    showSection(index);
-  }
-
-  swipeSurface.addEventListener("touchstart", e => {
-    const t = e.changedTouches[0];
-    startX = lastX = t.clientX;
-    startY = lastY = t.clientY;
-    lockedAxis = null;
-  }, { passive: false });
-
-  swipeSurface.addEventListener("touchmove", e => {
-    const t = e.changedTouches[0];
-    const dx = t.clientX - startX;
-    const dy = t.clientY - startY;
-
-    if (!lockedAxis) {
-      if (Math.abs(dx) > 12 || Math.abs(dy) > 12) {
-        lockedAxis = (Math.abs(dx) > Math.abs(dy) * 1.3) ? 'h' : 'v';
-      }
-    }
-
-    if (lockedAxis === 'h') e.preventDefault();
-    lastX = t.clientX;
-    lastY = t.clientY;
-  }, { passive: false });
-
-  swipeSurface.addEventListener("touchend", e => {
-    if (lockedAxis !== 'h') return;
-    const totalDx = lastX - startX;
-
-    if (Math.abs(totalDx) > 60) {
-      if (totalDx < 0 && current < sections.length - 1) {
-        current++; // swipe LEFT → next
-      } else if (totalDx > 0 && current > 0) {
-        current--; // swipe RIGHT → previous
-      }
-      showSectionSafe(current);
-    }
-  }, { passive: false });
-}
 
   // --- Go To Section (Nav Links) ---
   function goToSection(targetIndex) {
@@ -386,7 +340,6 @@ if (window.matchMedia("(max-width: 991px)").matches) {
     });
   });
 });
-
 
 
 
