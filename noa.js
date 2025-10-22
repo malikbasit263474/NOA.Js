@@ -296,25 +296,56 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   window.addEventListener("wheel", handleScroll);
 
-  // --- MOBILE SWIPE LOGIC (horizontal) ---
+   // --- MOBILE SWIPE LOGIC (horizontal) ---
   if (window.matchMedia("(max-width: 991px)").matches) {
-    document.addEventListener("touchstart", e => {
-      touchStartX = e.changedTouches[0].screenX;
-    });
+    const swipeSurface = document.querySelector(".swipe-surface") || document.body;
+    let startX = 0, startY = 0, lastX = 0, lastY = 0, lockedAxis = null;
 
-    document.addEventListener("touchend", e => {
-      touchEndX = e.changedTouches[0].screenX;
-      const diffX = touchEndX - touchStartX;
+    function showSectionSafe(index) {
+      if (index < 0 || index >= sections.length) return;
+      showSection(index);
+    }
 
-      if (Math.abs(diffX) > 50) { // Minimum swipe distance
-        if (diffX < 0 && current < sections.length - 1) {
+    swipeSurface.addEventListener("touchstart", e => {
+      const t = e.changedTouches[0];
+      startX = lastX = t.clientX;
+      startY = lastY = t.clientY;
+      lockedAxis = null;
+    }, { passive: false });
+
+    swipeSurface.addEventListener("touchmove", e => {
+      const t = e.changedTouches[0];
+      const dx = t.clientX - startX;
+      const dy = t.clientY - startY;
+
+      if (!lockedAxis) {
+        if (Math.abs(dx) > 12 || Math.abs(dy) > 12) {
+          lockedAxis = (Math.abs(dx) > Math.abs(dy) * 1.3) ? 'h' : 'v';
+        }
+      }
+
+      // Only stop scroll if it's clearly horizontal
+      if (lockedAxis === 'h') {
+        e.preventDefault();
+      }
+
+      lastX = t.clientX;
+      lastY = t.clientY;
+    }, { passive: false });
+
+    swipeSurface.addEventListener("touchend", e => {
+      if (lockedAxis !== 'h') return;
+      const totalDx = lastX - startX;
+
+      if (Math.abs(totalDx) > 60) {
+        if (totalDx < 0 && current < sections.length - 1) {
           current++; // Swipe LEFT → Next section
-        } else if (diffX > 0 && current > 0) {
+        } else if (totalDx > 0 && current > 0) {
           current--; // Swipe RIGHT → Previous section
         }
-        showSection(current);
+        showSectionSafe(current);
       }
-    });
+    }, { passive: false });
   }
 
   // --- Go To Section (Nav Links) ---
