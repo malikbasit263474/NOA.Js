@@ -296,57 +296,53 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   window.addEventListener("wheel", handleScroll);
 
-   // --- MOBILE SWIPE LOGIC (horizontal) ---
-  if (window.matchMedia("(max-width: 991px)").matches) {
-    const swipeSurface = document.querySelector(".swipe-surface") || document.body;
-    let startX = 0, startY = 0, lastX = 0, lastY = 0, lockedAxis = null;
+  // --- MOBILE SWIPE LOGIC (horizontal) ---
+if (window.matchMedia("(max-width: 991px)").matches) {
+  const swipeSurface = document.querySelector(".swipe-surface");
+  let startX = 0, startY = 0, lastX = 0, lastY = 0, lockedAxis = null;
 
-    function showSectionSafe(index) {
-      if (index < 0 || index >= sections.length) return;
-      showSection(index);
+  function showSectionSafe(index) {
+    if (index < 0 || index >= sections.length) return;
+    showSection(index);
+  }
+
+  swipeSurface.addEventListener("touchstart", e => {
+    const t = e.changedTouches[0];
+    startX = lastX = t.clientX;
+    startY = lastY = t.clientY;
+    lockedAxis = null;
+  }, { passive: false });
+
+  swipeSurface.addEventListener("touchmove", e => {
+    const t = e.changedTouches[0];
+    const dx = t.clientX - startX;
+    const dy = t.clientY - startY;
+
+    if (!lockedAxis) {
+      if (Math.abs(dx) > 12 || Math.abs(dy) > 12) {
+        lockedAxis = (Math.abs(dx) > Math.abs(dy) * 1.3) ? 'h' : 'v';
+      }
     }
 
-    swipeSurface.addEventListener("touchstart", e => {
-      const t = e.changedTouches[0];
-      startX = lastX = t.clientX;
-      startY = lastY = t.clientY;
-      lockedAxis = null;
-    }, { passive: false });
+    if (lockedAxis === 'h') e.preventDefault();
+    lastX = t.clientX;
+    lastY = t.clientY;
+  }, { passive: false });
 
-    swipeSurface.addEventListener("touchmove", e => {
-      const t = e.changedTouches[0];
-      const dx = t.clientX - startX;
-      const dy = t.clientY - startY;
+  swipeSurface.addEventListener("touchend", e => {
+    if (lockedAxis !== 'h') return;
+    const totalDx = lastX - startX;
 
-      if (!lockedAxis) {
-        if (Math.abs(dx) > 12 || Math.abs(dy) > 12) {
-          lockedAxis = (Math.abs(dx) > Math.abs(dy) * 1.3) ? 'h' : 'v';
-        }
+    if (Math.abs(totalDx) > 60) {
+      if (totalDx < 0 && current < sections.length - 1) {
+        current++; // swipe LEFT → next
+      } else if (totalDx > 0 && current > 0) {
+        current--; // swipe RIGHT → previous
       }
-
-      // Only stop scroll if it's clearly horizontal
-      if (lockedAxis === 'h') {
-        e.preventDefault();
-      }
-
-      lastX = t.clientX;
-      lastY = t.clientY;
-    }, { passive: false });
-
-    swipeSurface.addEventListener("touchend", e => {
-      if (lockedAxis !== 'h') return;
-      const totalDx = lastX - startX;
-
-      if (Math.abs(totalDx) > 60) {
-        if (totalDx < 0 && current < sections.length - 1) {
-          current++; // Swipe LEFT → Next section
-        } else if (totalDx > 0 && current > 0) {
-          current--; // Swipe RIGHT → Previous section
-        }
-        showSectionSafe(current);
-      }
-    }, { passive: false });
-  }
+      showSectionSafe(current);
+    }
+  }, { passive: false });
+}
 
   // --- Go To Section (Nav Links) ---
   function goToSection(targetIndex) {
