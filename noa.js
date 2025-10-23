@@ -133,7 +133,7 @@ if (metaDescEl) {
     details.style.opacity = "1";
 
     if (hideTimer) clearTimeout(hideTimer);
-    hideTimer = setTimeout(() => hideMusicDetails(false), 8000);
+    hideTimer = setTimeout(() => hideMusicDetails(false), 10000);
   }
 
   // --- HIDE MUSIC DETAILS ---
