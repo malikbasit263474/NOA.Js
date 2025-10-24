@@ -363,8 +363,6 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-
-
 // mobile details popup logic
 document.addEventListener("DOMContentLoaded", function() {
   if (window.innerWidth > 991) return; // only on mobile
