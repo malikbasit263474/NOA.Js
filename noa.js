@@ -401,59 +401,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
 
 
-// email validation and submission logic
-document.addEventListener("DOMContentLoaded", () => {
-  const submitBtn = document.querySelector(".submit-btn");
-  const emailField = document.querySelector(".email-field");
-  const form = submitBtn?.closest("form");
-
-  if (!submitBtn || !emailField || !form) return;
-
-  let stage = 0;
-  const isMobile = () => window.innerWidth <= 768;
-
-  const highlightError = () => {
-    emailField.style.outline = "2px solid rgba(255, 0, 0, 0.6)";
-    setTimeout(() => (emailField.style.outline = ""), 1000);
-  };
-
-  submitBtn.addEventListener("click", (e) => {
-    const emailVal = (emailField.value || "").trim();
-    const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal);
-
-    if (isMobile()) {
-      if (stage === 0) {
-        stage = 1;
-        return; // first tap = show animation
-      }
-
-      if (stage === 1) {
-        if (!isValidEmail) {
-          e.preventDefault();
-          highlightError();
-          return;
-        }
-
-        // ✅ allow natural Webflow submission
-        stage = 2;
-        // do NOT call requestSubmit()
-        // Webflow will handle submission when button triggers native submit
-        return;
-      }
-    } else {
-      if (!isValidEmail) {
-        e.preventDefault();
-        highlightError();
-        return;
-      }
-
-      // ✅ allow Webflow to handle the real submit
-      return;
-    }
-  });
-});
-
-
 // logo click refresh logic
 document.addEventListener("DOMContentLoaded", () => {
   const logo = document.querySelector(".nav-logo");
