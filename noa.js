@@ -246,16 +246,14 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
-    // 👇 Control .arrow-desktop visibility here
+    // ✅ Control .arrow-desktop visibility here (simple, safe logic)
     if (arrowDesktop) {
       if (index === sections.length - 1) {
-        // Hide on last ("What") section
-        arrowDesktop.style.opacity = "0";
-        arrowDesktop.style.pointerEvents = "none";
+        // Hide arrow only on last ("What") section
+        arrowDesktop.classList.add("hide-arrow");
       } else {
-        // Show on "Initial" + "Why"
-        arrowDesktop.style.opacity = "1";
-        arrowDesktop.style.pointerEvents = "auto";
+        // Show arrow on Initial + Why
+        arrowDesktop.classList.remove("hide-arrow");
       }
     }
   }
@@ -300,6 +298,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (window.hideMusicDetails) window.hideMusicDetails(true);
     }
 
+    // Scroll logic
     if (e.deltaY > 0 && current < sections.length - 1) {
       current++;
       showSection(current);
