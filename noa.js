@@ -247,19 +247,48 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
-    // 👇 Control .arrow-desktop visibility here
-    if (arrowDesktop) {
-      if (index === sections.length - 1) {
-        // Hide on last ("What") section
-        arrowDesktop.style.opacity = "0";
-        arrowDesktop.style.pointerEvents = "none";
-      } else {
-        // Show on "Initial" + "Why"
-        arrowDesktop.style.opacity = "1";
-        arrowDesktop.style.pointerEvents = "auto";
-      }
+function showSection(index) {
+  if (musicDetails && musicDetails.style.display === "block") return;
+
+  sections.forEach((sec, i) => {
+    const heading = sec.querySelector(".hero-heading");
+    const paragraph = sec.querySelector(".hero-paragraph");
+    if (!heading || !paragraph) return;
+
+    if (i === index) {
+      sec.style.visibility = "visible";
+      sec.style.opacity = "1";
+      heading.style.opacity = "1";
+      paragraph.style.opacity = "1";
+      heading.style.transform = "translateY(0)";
+      paragraph.style.transform = "translateY(0)";
+      heading.style.transition = "opacity 0.8s ease, transform 0.8s ease";
+      paragraph.style.transition = "opacity 0.8s ease 0.1s, transform 0.8s ease 0.1s";
+    } else {
+      sec.style.opacity = "0";
+      heading.style.opacity = "0";
+      paragraph.style.opacity = "0";
+      heading.style.transform = "translateY(30px)";
+      paragraph.style.transform = "translateY(30px)";
+      heading.style.transition = "opacity 0.6s ease, transform 0.6s ease";
+      paragraph.style.transition = "opacity 0.6s ease, transform 0.6s ease";
+      sec.style.visibility = "hidden";
+    }
+  });
+
+  // 👇 Control .arrow-desktop visibility here
+  if (arrowDesktop) {
+    if (index === sections.length - 1) {
+      // Hide on last ("What") section
+      arrowDesktop.style.opacity = "0";
+      arrowDesktop.style.pointerEvents = "none";
+    } else {
+      // Show on "Initial" + "Why"
+      arrowDesktop.style.opacity = "1";
+      arrowDesktop.style.pointerEvents = "auto";
     }
   }
+}
 
   // --- Initialize first section ---
   showSection(current);
