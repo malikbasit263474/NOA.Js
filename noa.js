@@ -198,6 +198,7 @@ if (metaDescEl) {
 
 
 
+
 // --- SCROLL + NAV SECTION LOGIC (DESKTOP ONLY) ---
 document.addEventListener("DOMContentLoaded", () => {
   const sections = [
