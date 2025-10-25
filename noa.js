@@ -211,7 +211,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const whatBtn = document.querySelector(".what-link");
   const whyBtnMobile = document.querySelector(".why-link.is-mobile");
   const whatBtnMobile = document.querySelector(".what-link.is-mobile");
-  const arrowDesktop = document.querySelector(".arrow-desktop"); // 👈 reference to arrow
 
   let current = 0;
   let isScrolling = false;
@@ -233,7 +232,8 @@ document.addEventListener("DOMContentLoaded", () => {
         heading.style.transform = "translateY(0)";
         paragraph.style.transform = "translateY(0)";
         heading.style.transition = "opacity 0.8s ease, transform 0.8s ease";
-        paragraph.style.transition = "opacity 0.8s ease 0.1s, transform 0.8s ease 0.1s";
+        paragraph.style.transition =
+          "opacity 0.8s ease 0.1s, transform 0.8s ease 0.1s";
       } else {
         sec.style.opacity = "0";
         heading.style.opacity = "0";
@@ -245,17 +245,6 @@ document.addEventListener("DOMContentLoaded", () => {
         sec.style.visibility = "hidden";
       }
     });
-
-    // ✅ Control .arrow-desktop visibility here (simple, safe logic)
-    if (arrowDesktop) {
-      if (index === sections.length - 1) {
-        // Hide arrow only on last ("What") section
-        arrowDesktop.classList.add("hide-arrow");
-      } else {
-        // Show arrow on Initial + Why
-        arrowDesktop.classList.remove("hide-arrow");
-      }
-    }
   }
 
   // --- Initialize first section ---
@@ -269,6 +258,7 @@ document.addEventListener("DOMContentLoaded", () => {
         first.style.transition = "none";
         first.style.opacity = "0";
         first.style.visibility = "hidden";
+
         const heading = first.querySelector(".hero-heading");
         const paragraph = first.querySelector(".hero-paragraph");
         if (heading && paragraph) {
@@ -298,7 +288,6 @@ document.addEventListener("DOMContentLoaded", () => {
       if (window.hideMusicDetails) window.hideMusicDetails(true);
     }
 
-    // Scroll logic
     if (e.deltaY > 0 && current < sections.length - 1) {
       current++;
       showSection(current);
@@ -325,11 +314,15 @@ document.addEventListener("DOMContentLoaded", () => {
     current = targetIndex;
 
     // Highlight active nav link
-    document.querySelectorAll(".nav-menu-link").forEach(b => b.classList.remove("active"));
+    document
+      .querySelectorAll(".nav-menu-link")
+      .forEach(b => b.classList.remove("active"));
+
     if (targetIndex === 1) {
       if (whyBtn) whyBtn.classList.add("active");
       if (whyBtnMobile) whyBtnMobile.classList.add("active");
     }
+
     if (targetIndex === 2) {
       if (whatBtn) whatBtn.classList.add("active");
       if (whatBtnMobile) whatBtnMobile.classList.add("active");
@@ -354,7 +347,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 });
-
 
 
 
