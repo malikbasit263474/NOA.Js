@@ -197,6 +197,7 @@ if (metaDescEl) {
 
 
 
+<script>
 // --- SCROLL + NAV SECTION LOGIC (DESKTOP ONLY) ---
 document.addEventListener("DOMContentLoaded", () => {
   const sections = [
@@ -210,6 +211,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const whatBtn = document.querySelector(".what-link");
   const whyBtnMobile = document.querySelector(".why-link.is-mobile");
   const whatBtnMobile = document.querySelector(".what-link.is-mobile");
+  const arrowDesktop = document.querySelector(".arrow-desktop"); // 👈 new reference
 
   let current = 0;
   let isScrolling = false;
@@ -243,6 +245,19 @@ document.addEventListener("DOMContentLoaded", () => {
         sec.style.visibility = "hidden";
       }
     });
+
+    // 👇 Control .arrow-desktop visibility here
+    if (arrowDesktop) {
+      if (index === sections.length - 1) {
+        // Hide on last ("What") section
+        arrowDesktop.style.opacity = "0";
+        arrowDesktop.style.pointerEvents = "none";
+      } else {
+        // Show on "Initial" + "Why"
+        arrowDesktop.style.opacity = "1";
+        arrowDesktop.style.pointerEvents = "auto";
+      }
+    }
   }
 
   // --- Initialize first section ---
@@ -340,6 +355,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 });
+</script>
 
 
 
