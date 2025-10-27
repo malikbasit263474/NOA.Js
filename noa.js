@@ -140,6 +140,7 @@ if (metaDescEl) {
 function hideMusicDetails(instant = false) {
   if (!isShowingDetails && instant) {
     details.style.display = "none";
+    document.dispatchEvent(new Event("musicDetailsHide"));
     return;
   }
 
@@ -147,9 +148,10 @@ function hideMusicDetails(instant = false) {
   details.style.transition = "none";
   details.style.opacity = "0";
   details.style.display = "none";
+
   restoreCurrentSection();
 
-  // Notifies other scripts (like arrow logic)
+  // ✅ Always fire event when hidden (manual or timed)
   document.dispatchEvent(new Event("musicDetailsHide"));
 }
 
