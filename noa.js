@@ -137,18 +137,21 @@ if (metaDescEl) {
   }
 
   // --- HIDE MUSIC DETAILS ---
-  function hideMusicDetails(instant = false) {
-    if (!isShowingDetails && instant) {
-      details.style.display = "none";
-      return;
-    }
-
-    isShowingDetails = false;
-    details.style.transition = "none";
-    details.style.opacity = "0";
+function hideMusicDetails(instant = false) {
+  if (!isShowingDetails && instant) {
     details.style.display = "none";
-    restoreCurrentSection();
+    return;
   }
+
+  isShowingDetails = false;
+  details.style.transition = "none";
+  details.style.opacity = "0";
+  details.style.display = "none";
+  restoreCurrentSection();
+
+  // Notifies other scripts (like arrow logic)
+  document.dispatchEvent(new Event("musicDetailsHide"));
+}
 
   // --- RESTORE CURRENT SECTION ---
   function restoreCurrentSection() {
