@@ -519,8 +519,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   console.log("🎉 Mobile Swiper + Music Sync (observer-based) initialized");
 });
-</script>
-<script>
+
+
 (function() {
   function updateVH() {
     document.documentElement.style.setProperty('--vh', (window.innerHeight * 0.01) + 'px');
